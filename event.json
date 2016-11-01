@@ -1,5 +1,8 @@
 {
-  "key3": "value3",
-  "key2": "value2",
-  "key1": "value1"
+  "BucketName": "rds-mysql-logs",
+  "S3BucketPrefix": "[Prefix to use within the specified bucket]/",
+  "RDSInstanceName": "[RDS DB Instance Name]",
+  "LogNamePrefix" : "general/mysql-general",
+  "lastRecievedFile" : "lastWrittenMarker",
+  "Region"  :"[RegionName]"
 }
