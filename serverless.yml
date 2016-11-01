@@ -16,31 +16,56 @@ service: aws-python # NOTE: update this with your service name
 provider:
   name: aws
   runtime: python2.7
-
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
 
 # you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-
-# you can add packaging information here
-#package:
-#  exclude:
-#    - exclude-me.js
-#  artifact: my-service-code.zip
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource: "arn:aws:logs:*:*:*"
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+        - "s3:PutObject"
+      Resource:
+        - {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:s3:::",
+              {
+                "Ref": "RdsLogs"
+              },
+              "/*"
+            ]
+          ]
+          }
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+      Resource:
+        - {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:s3:::",
+              {
+                "Ref": "RdsLogs"
+              }
+            ]
+          ]
+          }
+    - Effect: "Allow"
+      Action:
+        - "rds:DescribeDBLogFiles"
+        - "rds:DownloadDBLogFilePortion"
+      Resource:
+        - "*"
 
 functions:
   rdsMysqltoS3:
@@ -59,13 +84,14 @@ functions:
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+resources:
+  Resources:
+    RdsLogs:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: rds-mysql-logs-${env:FUNC_PREFIX}
+  Outputs:
+    RdsLogs:
+      Description: "RDS Log Bucket"
+      Value:
+        Ref: "RdsLogs"
