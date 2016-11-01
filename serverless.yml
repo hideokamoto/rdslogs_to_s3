@@ -43,7 +43,7 @@ provider:
 #  artifact: my-service-code.zip
 
 functions:
-  rds_mysql_to_s3:
+  rdsMysqltoS3:
     handler: rds_mysql_to_s3.hello
 
 #    The following are a few example events you can configure
