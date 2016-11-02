@@ -1,0 +1,8 @@
+{
+  "BucketName": "[BucketName]",
+  "S3BucketPrefix": "[Prefix to use within the specified bucket]/",
+  "RDSInstanceName": "[RDS DB Instance Name]",
+  "LogNamePrefix" : "general/mysql-general",
+  "lastRecievedFile" : "lastWrittenMarker",
+  "Region"  :"[RegionName]"
+}

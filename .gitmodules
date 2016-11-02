@@ -1,0 +1,3 @@
+[submodule "rdslogs"]
+	path = rdslogs
+	url = https://github.com/ryanholland/rdslogs_to_s3.git
