@@ -1,89 +1,38 @@
-## AWS Lambda function to export Amazon RDS MySQL Query Logs to S3
+## Serverless Framework AWS Lambda function to export Amazon RDS MySQL Query Logs to S3
+Serverless Framework for [AWS Lambda function to export Amazon RDS MySQL Query Logs to S3](https://github.com/ryanholland/rdslogs_to_s3) .
 
-### Requirments
-In order to enable query logging in RDS you must enable the general_log in the RDS Parameter Group with the output format to FILE
-Details on how to do this are available from the Amazon RDS documentation
-http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.Concepts.MySQL.html
+## Requirments
+- Serverless Framework v1.0.0 or later
 
-### Creating the IAM Execution Role
+## Setup
 
-The AWS Lambda service uses an IAM role to execute the function, below is the IAM policy needed by the function to run.  
-*Replace [BucketName] below with the name of the bucket in your account where you want the log files to be written to*
+### clone it
+
 ```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:logs:*:*:*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject",
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::[BucketName]/*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                "arn:aws:s3:::[BucketName]"
-            ]
-        },
-        {
+$ git clone git@github.com:hideokamoto/rdslogs_to_s3.git
+```
+### Set ENV Parameter
 
-            "Effect": "Allow",
-            "Action": [
-                "rds:DescribeDBLogFiles",
-                "rds:DownloadDBLogFilePortion"
-            ],
-            "Resource": [
-                "*"
-            ]
-        }
-    ]
-}
+```
+$ export FUNC_PREFIX=sample
 ```
 
-### Configuring the AWS Lambda fucntion
-To create the new AWS Lambda function create a zip file that contains only the rds_mysql_to_s3.py and upload the zip file to a new AWS Lambda function.
+### configure Lambda function
 
-The Lambda Handler needs to be set to: rds_mysql_to_s3.lambda_handler
-The Runtime Environment is Python 2.7
-Role needs to be set to a role that has the policy above.
-Modify the Timeout value (under Advanced) from the default of 3 seconds to at least 1 minute, if you have very large log files you may need to increase the timeout even further.
+set following parameters in Lambda function(rdslogs/rds_mysql_to_s3.py)
 
-### Creating a Test Event
-The event input for the function is a JSON package that contains the information about the RDS instance and S3 bucket and has the following values:
 ```
-{
-  "BucketName": "[BucketName]",
-  "S3BucketPrefix": "[Prefix to use within the specified bucket]/",
-  "RDSInstanceName": "[RDS DB Instance Name]",
-  "LogNamePrefix" : "general/mysql-general",
-  "lastRecievedFile" : "lastWrittenMarker",
-  "Region"  :"[RegionName]"
-}
-```
-
-### Scheduling the AWS Lambda Function
-Since RDS only maintains log files for a maximum of 24 hours or until the log data exceeds 2% of the storage allocated to the DB Instance its adviseable to have the function run at least once per day.  By setting up an Event Source in Lambda you can have the function run on a scheduled basis.  As new log files are retrieved from the RDS service they will overwrite older log files of the same name in the S3 bucket/prefix so you should retrieve the log files from S3 prior to subsequent runs of the function.  If you are going to leverage the Scheduled Event to call the function the event there is no way to pass a payload to the function so set the values at the top of the file with those the same values as the in the Test Event:
-```
-S3BCUKET='[BucketName]'
+S3BCUKET='rds-mysql-logs-sample'
 S3PREFIX='[Prefix to use within the specified bucket]/'
 RDSINSANCE='[RDS DB Instance Name]'
 LOGNAME='general/mysql-general'
 LASTRECIEVED='lastWrittenMarker'
 REGION='[RegionName]'
+```
+`S3BCUKET` should be `rds-mysql-logs-` + `FUNC_PREFIX`.
+
+### Deploy
+
+```
+$ sls deploy -r [RegionName]
 ```
